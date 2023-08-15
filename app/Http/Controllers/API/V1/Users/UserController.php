@@ -2,17 +2,34 @@
 
 namespace App\Http\Controllers\API\V1\Users;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Helpers\ResponseFormatter;
+use App\Http\Controllers\Controller;
+use App\Http\Resources\UserResource;
+use App\Repositories\User\UserRepository;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    private $userRepository;
+
+    public function __construct(UserRepository $userRepository) {
+        $this->userRepository = $userRepository;
+    }
+
     public function index()
     {
-        //
+        $result = $this->userRepository->listUsers();
+
+        if ($result) {
+            return ResponseFormatter::success(
+                UserResource::collection($result),
+                'Users retrieved successfully'
+            );
+        } else {
+            return response()->json([
+                'message' => 'Users retrieval failed',
+            ], 500);
+        }
     }
 
     /**
@@ -20,7 +37,17 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $result = $this->userRepository->createUser($request->validated());
+
+        if ($result) {
+            return response()->json([
+                'message' => 'User created successfully',
+            ], 201);
+        } else {
+            return response()->json([
+                'message' => 'User creation failed',
+            ], 500);
+        }
     }
 
     /**
@@ -36,7 +63,17 @@ class UserController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $result = $this->userRepository->updateUser($request->validated(), $id);
+
+        if ($result) {
+            return response()->json([
+                'message' => 'User updated successfully',
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'User update failed',
+            ], 500);
+        }
     }
 
     /**
@@ -44,6 +81,16 @@ class UserController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $result = $this->userRepository->deleteUser($id);
+
+        if ($result) {
+            return response()->json([
+                'message' => 'User deleted successfully',
+            ], 200);
+        } else {
+            return response()->json([
+                'message' => 'User deletion failed',
+            ], 500);
+        }
     }
 }
